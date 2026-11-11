@@ -30,6 +30,13 @@
         android:text="VERIFICAR PATENTE" />
 
     <Button
+        android:id="@+id/registrarPatente"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="REGISTRAR PATENTE"
+        android:layout_marginTop="16dp" />
+
+    <Button
         android:id="@+id/cerrarSesion"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -37,4 +44,3 @@
         android:layout_marginTop="16dp" />
 
 </LinearLayout>
-

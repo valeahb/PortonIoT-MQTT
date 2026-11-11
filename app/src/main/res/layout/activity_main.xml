@@ -39,7 +39,20 @@
         android:hint="Contraseña"
         android:inputType="textPassword"
         android:padding="12dp"
-        android:layout_marginBottom="24dp" />
+        android:layout_marginBottom="12dp" />
+
+    <TextView
+        android:id="@+id/recuperarPassword"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="¿Olvidaste tu contraseña?"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="#007ACC"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp" />
 
     <Button
         android:id="@+id/acceso"

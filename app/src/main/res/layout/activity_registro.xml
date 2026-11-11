@@ -35,6 +35,15 @@
         android:layout_marginBottom="16dp" />
 
     <EditText
+        android:id="@+id/emailRegistro"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Correo electrónico"
+        android:inputType="textEmailAddress"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp" />
+
+    <EditText
         android:id="@+id/passwordRegistro"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

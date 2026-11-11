@@ -13,3 +13,12 @@
 .externalNativeBuild
 .cxx
 local.properties
+# Archivos privados de Firebase
+firebase-key.json
+**/firebase-key.json
+
+# Archivos internos de Android Studio
+.idea/appInsightsSettings.xml
+
+# Carpetas de compilacion
+**/build/

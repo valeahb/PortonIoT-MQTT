@@ -4,23 +4,24 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
-import com.example.portoniot.datos.Conexion;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.FirebaseDatabase;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class RegistroActivity extends AppCompatActivity {
 
-    EditText etRut, etPassword, etPasswordConfirmar;
+    EditText etRut, etEmail, etPassword, etPasswordConfirmar;
     Button btnRegistrar, btnLimpiar;
+
+    FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,117 +30,142 @@ public class RegistroActivity extends AppCompatActivity {
 
         relacionamosVistas();
 
-        btnLimpiar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        mAuth = FirebaseAuth.getInstance();
 
-                etRut.setText("");
-                etPassword.setText("");
-                etPasswordConfirmar.setText("");
-            }
+        btnLimpiar.setOnClickListener(v -> {
+            etRut.setText("");
+            etEmail.setText("");
+            etPassword.setText("");
+            etPasswordConfirmar.setText("");
         });
     }
 
     public void relacionamosVistas() {
 
-        etRut = (EditText) findViewById(R.id.rutRegistro);
+        etRut = findViewById(R.id.rutRegistro);
+        etEmail = findViewById(R.id.emailRegistro);
+        etPassword = findViewById(R.id.passwordRegistro);
+        etPasswordConfirmar = findViewById(R.id.passwordConfirmar);
 
-        etPassword = (EditText)
-                findViewById(R.id.passwordRegistro);
-
-        etPasswordConfirmar = (EditText)
-                findViewById(R.id.passwordConfirmar);
-
-        btnRegistrar = (Button)
-                findViewById(R.id.registrar);
-
-        btnLimpiar = (Button)
-                findViewById(R.id.mostrar);
+        btnRegistrar = findViewById(R.id.registrar);
+        btnLimpiar = findViewById(R.id.mostrar);
     }
 
     public void registrarUsuario(View v) {
 
-        final String rut =
-                etRut.getText().toString();
+        String rut = etRut.getText().toString()
+                .trim().toUpperCase();
 
-        final String password =
-                etPassword.getText().toString();
+        String email = etEmail.getText().toString().trim();
 
-        final String passwordConfirmar =
+        String password = etPassword.getText().toString();
+
+        String passwordConfirmar =
                 etPasswordConfirmar.getText().toString();
 
-        if (rut.isEmpty()
-                || password.isEmpty()
-                || passwordConfirmar.isEmpty()) {
+        if (rut.isEmpty() || email.isEmpty()
+                || password.isEmpty() || passwordConfirmar.isEmpty()) {
 
-            Toast.makeText(
-                    this,
+            Toast.makeText(this,
                     "Debe completar todos los campos",
-                    Toast.LENGTH_SHORT
-            ).show();
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
 
+        if (!rut.matches("^\\d{7,8}-[0-9K]$")) {
+
+            Toast.makeText(this,
+                    "Ingrese un RUT válido",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+
+            Toast.makeText(this,
+                    "Ingrese un correo electrónico válido",
+                    Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (!password.equals(passwordConfirmar)) {
 
-            Toast.makeText(
-                    this,
+            Toast.makeText(this,
                     "Las contraseñas no coinciden",
-                    Toast.LENGTH_SHORT
-            ).show();
-
+                    Toast.LENGTH_SHORT).show();
             return;
         }
 
-        String url = Conexion.URL_WEB_SERVICES
-                + "registro.php?rut="
-                + rut
-                + "&password="
-                + password;
+        if (password.length() < 8) {
 
-        RequestQueue servicio =
-                Volley.newRequestQueue(this);
+            Toast.makeText(this,
+                    "La contraseña debe tener al menos 8 caracteres",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        StringRequest respuesta = new StringRequest(
-                Request.Method.GET,
-                url,
+        // Crear cuenta en Firebase Authentication
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, task -> {
 
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
+                    if (task.isSuccessful()) {
 
-                        Toast.makeText(
-                                getApplicationContext(),
-                                response,
-                                Toast.LENGTH_LONG
-                        ).show();
+                        String uid = mAuth.getCurrentUser().getUid();
+
+                        // Preparar los datos del usuario
+                        Map<String, Object> datos = new HashMap<>();
+
+                        datos.put("usuarios/" + uid + "/rut", rut);
+                        datos.put("usuarios/" + uid + "/email", email);
+
+                        datos.put("rut_lookup/" + rut + "/email", email);
+
+                        // Guardar ambos registros en Firebase
+                        FirebaseDatabase.getInstance()
+                                .getReference()
+                                .updateChildren(datos)
+                                .addOnSuccessListener(unused -> {
+
+                                    Toast.makeText(this,
+                                            "Usuario registrado correctamente",
+                                            Toast.LENGTH_LONG).show();
+
+                                    mAuth.signOut();
+
+                                    Intent intent = new Intent(
+                                            RegistroActivity.this,
+                                            MainActivity.class
+                                    );
+
+                                    startActivity(intent);
+                                    finish();
+                                })
+                                .addOnFailureListener(e -> {
+
+                                    Toast.makeText(this,
+                                            "Error al guardar los datos: "
+                                                    + e.getMessage(),
+                                            Toast.LENGTH_LONG).show();
+                                });
+
+                    } else {
+
+                        Toast.makeText(this,
+                                "Error al registrar: "
+                                        + task.getException().getMessage(),
+                                Toast.LENGTH_LONG).show();
                     }
-                },
-
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-
-                        Toast.makeText(
-                                getApplicationContext(),
-                                "Error comunicación",
-                                Toast.LENGTH_SHORT
-                        ).show();
-                    }
-                }
-        );
-
-        servicio.add(respuesta);
+                });
     }
 
     public void regresar(View view) {
 
-        Intent i = new Intent(
+        Intent intent = new Intent(
                 this,
                 MainActivity.class
         );
 
-        startActivity(i);
+        startActivity(intent);
+        finish();
     }
 }

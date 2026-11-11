@@ -4,12 +4,11 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 
 public class InicioActivity extends AppCompatActivity {
 
-    Button btnVerificarPatente, btnCerrarSesion;
+    Button btnVerificarPatente, btnRegistrarPatente, btnCerrarSesion;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,23 +17,24 @@ public class InicioActivity extends AppCompatActivity {
 
         relacionamosVistas();
 
-        btnCerrarSesion.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        btnRegistrarPatente.setOnClickListener(v -> {
+            Intent intent = new Intent(
+                    InicioActivity.this,
+                    RegistrarPatenteActivity.class
+            );
+            startActivity(intent);
+        });
 
-                Intent i = new Intent(InicioActivity.this, MainActivity.class);
-                startActivity(i);
-                finish();
-
-            }
+        btnCerrarSesion.setOnClickListener(v -> {
+            Intent i = new Intent(InicioActivity.this, MainActivity.class);
+            startActivity(i);
+            finish();
         });
     }
 
     public void relacionamosVistas() {
-
-        btnVerificarPatente = (Button) findViewById(R.id.verificarPatente);
-        btnCerrarSesion = (Button) findViewById(R.id.cerrarSesion);
-
+        btnVerificarPatente = findViewById(R.id.verificarPatente);
+        btnRegistrarPatente = findViewById(R.id.registrarPatente);
+        btnCerrarSesion = findViewById(R.id.cerrarSesion);
     }
 }
-
